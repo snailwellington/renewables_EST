@@ -3,14 +3,17 @@ library(here)
 library(extrafont)
 
 
+
 # load fonts - every session
 loadfonts(device = "win", quiet = TRUE)
 
 ## get hour of the year
 
 yhour <- function(datetime){
-  return(lubridate::yday(datetime)*24+lubridate::hour(datetime))
+
+  return(lubridate::yday(datetime)*24+lubridate::hour(datetime)-24)
 }
+
 
 
 
@@ -41,7 +44,7 @@ renew_data <- renew_data_raw %>%
 ##Share of renewables 
 ggplot(renew_data,aes(x = yhour, y = 1))+
   geom_col(aes(fill = renew_balance), width = 1, color = NA)+
-  scale_fill_gradient2(high = "green", mid = "grey90", low = "grey15", midpoint = 25, limits = c(0,50), na.value = "red")+
+  scale_fill_gradient2(high = "green", mid = "grey90", low = "grey15", midpoint = 25, limits = c(0,50), na.value = "darkblue")+
   facet_grid(year~., switch= "y", space = "free")+
   labs(fill = "Renewable share, %",
        title = "Hourly share of Estonia's power generation by renewable fuels",
