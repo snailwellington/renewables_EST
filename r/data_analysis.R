@@ -48,7 +48,7 @@ ggplot(renew_data,aes(x = yhour, y = 1))+
   facet_grid(year~., switch= "y", space = "free")+
   labs(fill = "Renewable share, %",
        title = "Hourly share of Estonia's power generation by renewable fuels",
-       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),")"))+
+       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),") \n Inspiration from -> https://twitter.com/Jamrat_/status/1132390396787613696"))+
   theme_minimal()+
   theme(axis.title = element_blank(),
         legend.title = element_blank(),
@@ -71,7 +71,7 @@ ggplot(renew_data,aes(x = yhour, y = 1))+
   facet_grid(year~., switch= "y", space = "free")+
   labs(fill = "Non-Renewable share, %",
        title = "Hourly share of Estonia's power generation by non-renewable fuels",
-       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),")"))+
+       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),") \n Inspiration from -> https://twitter.com/Jamrat_/status/1132390396787613696"))+
   theme_minimal()+
   theme(axis.title = element_blank(),
         legend.title = element_blank(),
