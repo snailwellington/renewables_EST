@@ -48,7 +48,7 @@ ggplot(renew_data,aes(x = yhour, y = 1))+
   facet_grid(year~., switch= "y", space = "free")+
   labs(fill = "Renewable share, %",
        title = "Hourly share of Estonia's power generation by renewable fuels",
-       caption = "Data from Elering API (02.06.19)")+
+       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),")"))+
   theme_minimal()+
   theme(axis.title = element_blank(),
         legend.title = element_blank(),
@@ -56,7 +56,7 @@ ggplot(renew_data,aes(x = yhour, y = 1))+
         axis.text.y = element_blank(), 
         legend.position = "top",
         panel.grid = element_blank(),
-        text = element_text(size = 20, family = "Aino"), #
+        text = element_text(size = 20, family = "Trebuchet MS"), #
         plot.caption = element_text(color = "grey25", size = 10),
         legend.text = element_text(size = 8),
         legend.key.width = unit(2,"cm"),
@@ -71,7 +71,7 @@ ggplot(renew_data,aes(x = yhour, y = 1))+
   facet_grid(year~., switch= "y", space = "free")+
   labs(fill = "Non-Renewable share, %",
        title = "Hourly share of Estonia's power generation by non-renewable fuels",
-       caption = "Data from Elering API (02.06.19)")+
+       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),")"))+
   theme_minimal()+
   theme(axis.title = element_blank(),
         legend.title = element_blank(),
@@ -79,7 +79,7 @@ ggplot(renew_data,aes(x = yhour, y = 1))+
         axis.text.y = element_blank(), 
         legend.position = "top",
         panel.grid = element_blank(),
-        text = element_text(size = 20, family = "Aino"), #
+        text = element_text(size = 20, family = "Trebuchet MS"), #
         plot.caption = element_text(color = "grey25", size = 10),
         legend.text = element_text(size = 8),
         legend.key.width = unit(2,"cm"),
