@@ -20,6 +20,23 @@ yhour <- function(datetime){
 ## read in system data to get renewables and other production data
 renew_data_raw <- readRDS(here("data","renew_dataset.RDS"))
 
+
+## add the latest data without querying all the data from ER API
+### find max date from past data
+last_max_date <- max(renew_data_raw$datetime)
+
+### query new data until today
+additional_data <- RODER::get_system_real(query_start = last_max_date, query_end = Sys.Date()) %>% 
+  mutate(year = lubridate::year(datetime))
+
+### bind by rows all the data and clean duplicate datetimes
+renew_data_raw <- rbind(renew_data_raw,additional_data) %>% 
+  distinct(datetime, .keep_all = TRUE)
+
+
+### Save the data
+saveRDS(renew_data_raw,here("data","renew_dataset.RDS"))
+
 ## remove "real." from column names
 colnames(renew_data_raw) <- gsub("real.","",colnames(renew_data_raw))
 
