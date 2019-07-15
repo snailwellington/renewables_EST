@@ -44,7 +44,6 @@ colnames(renew_data_raw) <- gsub("real.","",colnames(renew_data_raw))
 ## mutate data to get day of year and the balance between renewables and other energy production
 
 renew_data <- renew_data_raw %>% 
-  na.omit() %>% 
   filter(production != 0) %>% 
   mutate(doy = lubridate::yday(datetime),
          week = lubridate::week(datetime),
@@ -59,26 +58,30 @@ renew_data <- renew_data_raw %>%
 
 ## per hour plots
 ##Share of renewables 
-ggplot(renew_data,aes(x = yhour, y = 1))+
+ggplot(subset(renew_data, year <= 2019),aes(x = yhour, y = 1))+
   geom_col(aes(fill = renew_balance), width = 1, color = NA)+
-  scale_fill_gradient2(high = "green", mid = "grey90", low = "grey15", midpoint = 25, limits = c(0,50), na.value = "darkblue")+
-  facet_grid(year~., switch= "y", space = "free")+
+  scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint = 25, limits = c(0,50), na.value = "darkblue")+
+  facet_grid(year~.,switch = "y")+
   labs(fill = "Renewable share, %",
        title = "Hourly share of Estonia's power generation by renewable fuels",
        caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),") \n Inspiration from -> https://twitter.com/Jamrat_"))+ #/status/1132390396787613696
   theme_minimal()+
   theme(axis.title = element_blank(),
-        legend.title = element_blank(),
+        # legend.title = element_blank(),
         axis.text.x = element_blank(),
         axis.text.y = element_blank(), 
         legend.position = "top",
         panel.grid = element_blank(),
         text = element_text(size = 20, family = "Trebuchet MS"), #
         plot.caption = element_text(color = "grey25", size = 10),
-        legend.text = element_text(size = 8),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 12),
         legend.key.width = unit(2,"cm"),
-        strip.text = element_text(vjust = -20))
-
+        panel.spacing.y = unit(0.25, "cm"),
+        panel.spacing.x = unit(0, "cm"),
+        plot.margin = unit(c(1,1,1,1), "cm"))+
+  coord_cartesian(expand = FALSE)
+  
 ggsave(here("output","renewable_balance.png"), dpi = 300, width = 16, height = 9)
 
 ## Share of non renewables
@@ -100,7 +103,11 @@ ggplot(renew_data,aes(x = yhour, y = 1))+
         plot.caption = element_text(color = "grey25", size = 10),
         legend.text = element_text(size = 8),
         legend.key.width = unit(2,"cm"),
-        strip.text = element_text(vjust = -20))
+        panel.spacing.y = unit(0.5, "cm"),
+        panel.spacing.x = unit(0, "cm"),
+        plot.margin = unit(c(1,1,1,1), "cm"))+
+  coord_cartesian(expand = FALSE)
+
 
 
 ggsave(here("output","non_renewable_balance.png"), dpi = 300, width = 16, height = 9)
