@@ -94,16 +94,17 @@ ggplot(renew_data,aes(x = yhour, y = 1))+
        caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),") \n Inspiration from -> https://twitter.com/Jamrat_"))+ #/status/1132390396787613696
   theme_minimal()+
   theme(axis.title = element_blank(),
-        legend.title = element_blank(),
+        # legend.title = element_blank(),
         axis.text.x = element_blank(),
         axis.text.y = element_blank(), 
         legend.position = "top",
         panel.grid = element_blank(),
         text = element_text(size = 20, family = "Trebuchet MS"), #
         plot.caption = element_text(color = "grey25", size = 10),
-        legend.text = element_text(size = 8),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 12),
         legend.key.width = unit(2,"cm"),
-        panel.spacing.y = unit(0.5, "cm"),
+        panel.spacing.y = unit(0.25, "cm"),
         panel.spacing.x = unit(0, "cm"),
         plot.margin = unit(c(1,1,1,1), "cm"))+
   coord_cartesian(expand = FALSE)
