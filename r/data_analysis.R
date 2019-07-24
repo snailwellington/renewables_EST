@@ -50,10 +50,12 @@ renew_data <- renew_data_raw %>%
          yhour = yhour(datetime)) %>% 
   group_by(year,yhour) %>% 
   summarise(production = sum(production),
-            production_renewable = sum(production_renewable)) %>% 
+            production_renewable = sum(production_renewable),
+            consumption = sum(consumption)) %>% 
   mutate(non_renew = production - production_renewable,
          renew_balance = 100*round(production_renewable / production,3),
-         other_balance = 100*round(non_renew / production,3))
+         other_balance = 100*round(non_renew / production,3),
+         renew_of_con = 100*round(production_renewable / consumption,3))
 
 
 ## per hour plots
@@ -83,6 +85,37 @@ ggplot(subset(renew_data, year <= 2019),aes(x = yhour, y = 1))+
   coord_cartesian(expand = FALSE)
   
 ggsave(here("output","renewable_balance.png"), dpi = 300, width = 16, height = 9)
+
+## per hour plots
+##Share of renewables to cover the consumption
+ggplot(subset(renew_data, year <= 2019),aes(x = yhour, y = 1))+
+  geom_col(aes(fill = renew_of_con), width = 1, color = NA)+
+  scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint = 20, limits = c(0,40), na.value = "darkblue")+
+  facet_grid(year~.,switch = "y")+
+  labs(fill = "Renewable share, %",
+       title = "Hourly share of renewables to cover consumption of Estonia",
+       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),") \n Inspiration from -> https://twitter.com/Jamrat_"))+ #/status/1132390396787613696
+  theme_minimal()+
+  theme(axis.title = element_blank(),
+        # legend.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(), 
+        legend.position = "top",
+        panel.grid = element_blank(),
+        text = element_text(size = 20, family = "Trebuchet MS"), #
+        plot.caption = element_text(color = "grey25", size = 10),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 12),
+        legend.key.width = unit(2,"cm"),
+        panel.spacing.y = unit(0.25, "cm"),
+        panel.spacing.x = unit(0, "cm"),
+        plot.margin = unit(c(1,1,1,1), "cm"))+
+  coord_cartesian(expand = FALSE)
+
+ggsave(here("output","renewable_of_con.png"), dpi = 300, width = 16, height = 9)
+
+
+
 
 ## Share of non renewables
 ggplot(renew_data,aes(x = yhour, y = 1))+
