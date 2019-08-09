@@ -2,7 +2,7 @@ library(tidyverse)
 library(here)
 library(extrafont)
 
-
+## calendar heatmap example -> https://rpubs.com/haj3/calheatmap
 
 # load fonts - every session
 loadfonts(device = "win", quiet = TRUE)
@@ -48,14 +48,17 @@ renew_data <- renew_data_raw %>%
   mutate(doy = lubridate::yday(datetime),
          week = lubridate::week(datetime),
          yhour = yhour(datetime)) %>% 
-  group_by(year,yhour) %>% 
+  # group_by(year,yhour) %>%
+  group_by(year,doy) %>%
   summarise(production = sum(production),
             production_renewable = sum(production_renewable),
             consumption = sum(consumption)) %>% 
   mutate(non_renew = production - production_renewable,
          renew_balance = 100*round(production_renewable / production,3),
          other_balance = 100*round(non_renew / production,3),
-         renew_of_con = 100*round(production_renewable / consumption,3))
+         renew_of_con = 100*round(production_renewable / consumption,3)) %>% 
+  rename("yhour" = doy)
+  
 
 
 ## per hour plots
