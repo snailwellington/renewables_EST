@@ -47,9 +47,10 @@ renew_data <- renew_data_raw %>%
   filter(production != 0) %>% 
   mutate(doy = lubridate::yday(datetime),
          week = lubridate::week(datetime),
-         yhour = yhour(datetime)) %>% 
-  # group_by(year,yhour) %>%
-  group_by(year,doy) %>%
+         yhour = yhour(datetime),
+         monthweek = ceiling(lubridate::day(datetime)/7)) %>% 
+  group_by(year,yhour) %>%
+  # group_by(year,doy) %>%
   summarise(production = sum(production),
             production_renewable = sum(production_renewable),
             consumption = sum(consumption)) %>% 
@@ -57,7 +58,8 @@ renew_data <- renew_data_raw %>%
          renew_balance = 100*round(production_renewable / production,3),
          other_balance = 100*round(non_renew / production,3),
          renew_of_con = 100*round(production_renewable / consumption,3)) %>% 
-  rename("yhour" = doy)
+  # rename("yhour" = doy)
+  rename()
   
 
 
@@ -93,7 +95,7 @@ ggsave(here("output","renewable_balance.png"), dpi = 300, width = 16, height = 9
 ##Share of renewables to cover the consumption
 ggplot(subset(renew_data, year <= 2019),aes(x = yhour, y = 1))+
   geom_col(aes(fill = renew_of_con), width = 1, color = NA)+
-  scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint = 20, limits = c(0,40), na.value = "darkblue")+
+  scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint = 25, limits = c(0,50), na.value = "darkblue")+
   facet_grid(year~.,switch = "y")+
   labs(fill = "Renewable share, %",
        title = "Hourly share of renewables to cover consumption of Estonia",
@@ -236,3 +238,29 @@ ggplot(renew_col_plot,aes(x = doy))+
         legend.key.width = unit(2,"cm"),
         strip.text = element_text(vjust = -20))
 
+
+
+## calendar plot
+calendar_data <- renew_data_raw %>% 
+  filter(production != 0) %>% 
+  mutate(doy = lubridate::yday(datetime),
+         week = lubridate::week(datetime),
+         weekday = lubridate::wday(datetime, label = TRUE),
+         month = lubridate::month(datetime),
+         hour = lubridate::hour(datetime),
+         yhour = yhour(datetime),
+         monthweek = ceiling(lubridate::day(datetime)/7)) %>% 
+  na.omit() %>% 
+  group_by(year,weekday,monthweek,month) %>%
+  summarise(production = sum(production),
+            production_renewable = sum(production_renewable),
+            consumption = sum(consumption)) %>% 
+  mutate(non_renew = production - production_renewable,
+         renew_balance = 100*round(production_renewable / production,3),
+         other_balance = 100*round(non_renew / production,3),
+         renew_of_con = 100*round(production_renewable / consumption,3))
+
+ggplot(calendar_data,aes(monthweek,weekday, fill = renew_of_con))+
+  geom_tile(color = "white")+
+  facet_grid(year~month)+
+  scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint =25, limits = c(0,50), na.value = "darkblue")
