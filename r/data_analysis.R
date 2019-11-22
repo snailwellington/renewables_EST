@@ -34,6 +34,23 @@ renew_data_raw <- rbind(renew_data_raw,additional_data) %>%
   distinct(datetime, .keep_all = TRUE)
 
 
+## fill missing data by taking min and max date and getting all datetimes between these
+
+min_date <- as.POSIXct(min(renew_data_raw$datetime))
+max_date <- as.POSIXct(max(renew_data_raw$datetime))
+
+total_tf <- seq.POSIXt(min_date,max_date, by = "1 hour") %>% 
+  as.data.frame() 
+
+colnames(total_tf) <- "total_datetime"
+
+pure_data <- total_tf %>% 
+  right_join(renew_data_raw, by = c("total_datetime" = "datetime")) %>% 
+  rename("datetime" = total_datetime) %>% 
+  mutate(year = lubridate::year(datetime))
+
+renew_data_raw <- pure_data
+
 ### Save the data
 saveRDS(renew_data_raw,here("data","renew_dataset.RDS"))
 
@@ -43,13 +60,21 @@ colnames(renew_data_raw) <- gsub("real.","",colnames(renew_data_raw))
 
 ## mutate data to get day of year and the balance between renewables and other energy production
 
-renew_data <- renew_data_raw %>% 
-  filter(production != 0) %>% 
+renew_data <- renew_data_raw %>%
+  # filter(production != 0) %>% 
   mutate(doy = lubridate::yday(datetime),
          week = lubridate::week(datetime),
          yhour = yhour(datetime),
          monthweek = ceiling(lubridate::day(datetime)/7)) %>% 
-  group_by(year,yhour) %>%
+  group_by(yhour, monthweek,doy) %>%
+  mutate(production = case_when(is.na(production) == TRUE | production == 0 ~ mean(production, na.rm = TRUE),
+                                TRUE ~ production),
+         consumption = case_when(is.na(consumption) == TRUE | consumption == 0  ~ mean(consumption, na.rm = TRUE),
+                                TRUE ~ consumption),
+         production_renewable = case_when(is.na(production_renewable) == TRUE | production_renewable == 0 ~ mean(production_renewable, na.rm = TRUE),
+                                TRUE ~ production_renewable)) %>% 
+  ungroup() %>% 
+  group_by(year,yhour) %>% 
   # group_by(year,doy) %>%
   summarise(production = sum(production),
             production_renewable = sum(production_renewable),
@@ -61,13 +86,16 @@ renew_data <- renew_data_raw %>%
   # rename("yhour" = doy)
   rename()
   
+low_point <- 0
+mid_point <- 25
+high_point <- 50
 
 
 ## per hour plots
 ##Share of renewables 
 ggplot(subset(renew_data, year <= 2019),aes(x = yhour, y = 1))+
   geom_col(aes(fill = renew_balance), width = 1, color = NA)+
-  scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint = 25, limits = c(0,50), na.value = "darkblue")+
+  scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint = mid_point, limits = c(low_point,high_point), na.value = "darkblue")+
   facet_grid(year~.,switch = "y")+
   labs(fill = "Renewable share, %",
        title = "Hourly share of Estonia's power generation by renewable fuels",
@@ -95,7 +123,7 @@ ggsave(here("output","renewable_balance.png"), dpi = 300, width = 16, height = 9
 ##Share of renewables to cover the consumption
 ggplot(subset(renew_data, year <= 2019),aes(x = yhour, y = 1))+
   geom_col(aes(fill = renew_of_con), width = 1, color = NA)+
-  scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint = 25, limits = c(0,50), na.value = "darkblue")+
+  scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint = mid_point, limits = c(low_point,high_point ), na.value = "darkblue")+
   facet_grid(year~.,switch = "y")+
   labs(fill = "Renewable share, %",
        title = "Hourly share of renewables to cover consumption of Estonia",
@@ -125,7 +153,7 @@ ggsave(here("output","renewable_of_con.png"), dpi = 300, width = 16, height = 9)
 ## Share of non renewables
 ggplot(renew_data,aes(x = yhour, y = 1))+
   geom_col(aes(fill = other_balance), width = 1, color = NA)+
-  scale_fill_gradient2(high = "grey15", mid = "grey90", low = "green", midpoint = 75, limits = c(50,100), na.value = "red")+
+  scale_fill_gradient2(high = "grey15", mid = "grey90", low = "green", midpoint = 100-mid_point, limits = c(100-high_point,100-low_point ), na.value = "red")+
   facet_grid(year~., switch= "y", space = "free")+
   labs(fill = "Non-Renewable share, %",
        title = "Hourly share of Estonia's power generation by non-renewable fuels",
