@@ -29,6 +29,8 @@ last_max_date <- max(renew_data_raw$datetime)
 additional_data <- RODER::get_system_real(query_start = last_max_date, query_end = Sys.Date()) %>% 
   mutate(year = lubridate::year(datetime))
 
+colnames(additional_data) <- gsub("real.","",colnames(additional_data))
+
 ### bind by rows all the data and clean duplicate datetimes
 renew_data_raw <- rbind(renew_data_raw,additional_data) %>% 
   distinct(datetime, .keep_all = TRUE)
@@ -74,7 +76,7 @@ renew_data <- renew_data_raw %>%
          production_renewable = case_when(is.na(production_renewable) == TRUE | production_renewable == 0 ~ mean(production_renewable, na.rm = TRUE),
                                 TRUE ~ production_renewable)) %>% 
   ungroup() %>% 
-  group_by(year,yhour) %>% 
+  group_by(year,datetime,yhour) %>% 
   # group_by(year,doy) %>%
   summarise(production = sum(production),
             production_renewable = sum(production_renewable),
