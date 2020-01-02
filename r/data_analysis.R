@@ -86,7 +86,8 @@ renew_data <- renew_data_raw %>%
          other_balance = 100*round(non_renew / production,3),
          renew_of_con = 100*round(production_renewable / consumption,3)) %>% 
   # rename("yhour" = doy)
-  rename()
+  rename() %>% 
+  filter(year < lubridate::year(Sys.Date()) & year >= 2014)
   
 low_point <- 0
 mid_point <- 25
@@ -120,6 +121,8 @@ ggplot(subset(renew_data, year <= 2019),aes(x = yhour, y = 1))+
   coord_cartesian(expand = FALSE)
   
 ggsave(here("output","renewable_balance.png"), dpi = 300, width = 16, height = 9)
+
+
 
 ## per hour plots
 ##Share of renewables to cover the consumption
