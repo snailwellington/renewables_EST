@@ -113,6 +113,11 @@ mid_point <- (high_point-low_point)/2
 
 
 
+  filter(year < lubridate::year(Sys.Date()))
+  
+low_point <- 0
+high_point <- 50
+mid_point <- (high_point-low_point)/2
 
 ## per hour plots
 ##Share of renewables 
@@ -122,7 +127,7 @@ ggplot(subset(renew_data),aes(x = yhour, y = 1))+
   facet_grid(year~.,switch = "y")+
   labs(fill = "Renewable share, %",
        title = "Hourly share of Estonia's power generation by renewable fuels",
-       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),") \n Inspiration from -> https://twitter.com/Jamrat_"))+ #/status/1132390396787613696
+       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),") "))+# \n Inspiration from -> https://twitter.com/Jamrat_"))+ #/status/1132390396787613696
   theme_minimal()+
   theme(axis.title = element_blank(),
         # legend.title = element_blank(),
@@ -152,7 +157,7 @@ ggplot(subset(renew_data),aes(x = yhour, y = 1))+
   facet_grid(year~.,switch = "y")+
   labs(fill = "Renewable share, %",
        title = "Hourly share of renewables to cover consumption of Estonia",
-       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),") \n Inspiration from -> https://twitter.com/Jamrat_"))+ #/status/1132390396787613696
+       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),") "))+ #\n Inspiration from -> https://twitter.com/Jamrat_"))+ #/status/1132390396787613696
   theme_minimal()+
   theme(axis.title = element_blank(),
         # legend.title = element_blank(),
@@ -178,11 +183,11 @@ ggsave(here("output","renewable_of_con.png"), dpi = 300, width = 16, height = 9)
 ## Share of non renewables
 ggplot(renew_data,aes(x = yhour, y = 1))+
   geom_col(aes(fill = other_balance), width = 1, color = NA)+
-  scale_fill_gradient2(high = "grey15", mid = "grey90", low = "green", midpoint = 100-mid_point, limits = c(100-high_point,100-low_point ), na.value = "red")+
+  scale_fill_gradient2(high = "grey15", mid = "grey70", low = "green", midpoint = 100-mid_point, limits = c(100-high_point,100-low_point ), na.value = "red")+
   facet_grid(year~., switch= "y", space = "free")+
   labs(fill = "Non-Renewable share, %",
        title = "Hourly share of Estonia's power generation by non-renewable fuels",
-       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),") \n Inspiration from -> https://twitter.com/Jamrat_"))+ #/status/1132390396787613696
+       caption = paste0("Data from Elering API (",format(Sys.Date(),"%d.%m.%y"),") "))+ #\n Inspiration from -> https://twitter.com/Jamrat_"))+ #/status/1132390396787613696
   theme_minimal()+
   theme(axis.title = element_blank(),
         # legend.title = element_blank(),
