@@ -85,18 +85,38 @@ renew_data <- renew_data_raw %>%
          renew_balance = 100*round(production_renewable / production,3),
          other_balance = 100*round(non_renew / production,3),
          renew_of_con = 100*round(production_renewable / consumption,3)) %>% 
-  # rename("yhour" = doy)
+  # rename("yhour" = doy) %>% 
+  mutate(month = lubridate::month(datetime)) %>% 
   rename() %>% 
-  filter(year < lubridate::year(Sys.Date()) & year >= 2014)
+  filter(year >= 2014)
+
+
+
+
+ggplot(subset(renew_data, year < 2020), aes(x = renew_of_con))+
+  # facet_grid(year~.)+
+  geom_density(aes(fill = as.factor(year)), alpha = 0.4, position = "dodge")
+
+ggplot(subset(renew_data, year < 2020), aes(x = as.factor(year), y = renew_of_con))+
+  geom_boxplot()
+
+ggplot(subset(renew_data, year < 2020), aes(x = as.factor(year), y = renew_balance))+
+  geom_jitter(aes(color = as.factor(month)), alpha = 0.3)+
+  geom_boxplot()
+
+ggplot(renew_data, aes(x = datetime, y = renew_of_con))+
+  geom_line()
   
 low_point <- 0
-mid_point <- 25
-high_point <- 50
+high_point <- 60
+mid_point <- (high_point-low_point)/2
+
+
 
 
 ## per hour plots
 ##Share of renewables 
-ggplot(subset(renew_data, year <= 2019),aes(x = yhour, y = 1))+
+ggplot(subset(renew_data),aes(x = yhour, y = 1))+
   geom_col(aes(fill = renew_balance), width = 1, color = NA)+
   scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint = mid_point, limits = c(low_point,high_point), na.value = "darkblue")+
   facet_grid(year~.,switch = "y")+
@@ -126,7 +146,7 @@ ggsave(here("output","renewable_balance.png"), dpi = 300, width = 16, height = 9
 
 ## per hour plots
 ##Share of renewables to cover the consumption
-ggplot(subset(renew_data, year <= 2019),aes(x = yhour, y = 1))+
+ggplot(subset(renew_data),aes(x = yhour, y = 1))+
   geom_col(aes(fill = renew_of_con), width = 1, color = NA)+
   scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint = mid_point, limits = c(low_point,high_point ), na.value = "darkblue")+
   facet_grid(year~.,switch = "y")+
