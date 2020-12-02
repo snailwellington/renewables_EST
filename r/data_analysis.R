@@ -26,7 +26,7 @@ renew_data_raw <- readRDS(here("data","renew_dataset.RDS"))
 last_max_date <- max(renew_data_raw$datetime)
 
 ### query new data until today
-additional_data <- RODER::get_system_real(query_start = last_max_date, query_end = Sys.Date()) %>% 
+additional_data <- RODER::get_system_real(query_start = paste(substr(last_max_date,1,16),"00:00"), query_end = paste(Sys.Date(),"00:00")) %>% 
   mutate(year = lubridate::year(datetime))
 
 colnames(additional_data) <- gsub("real.","",colnames(additional_data))
@@ -88,42 +88,36 @@ renew_data <- renew_data_raw %>%
   # rename("yhour" = doy) %>% 
   mutate(month = lubridate::month(datetime)) %>% 
   rename() %>% 
-  filter(year >= 2014)
+  filter(year > 2014)
 
 
+# 
+# 
+# ggplot(subset(renew_data, year < 2020), aes(x = renew_of_con))+
+#   # facet_grid(year~.)+
+#   geom_density(aes(fill = as.factor(year)), alpha = 0.4, position = "dodge")
+# 
+# ggplot(subset(renew_data, year < 2020), aes(x = as.factor(year), y = renew_of_con))+
+#   geom_boxplot()
+# 
+# ggplot(subset(renew_data, year < 2020), aes(x = as.factor(year), y = renew_balance))+
+#   geom_jitter(aes(color = as.factor(month)), alpha = 0.3)+
+#   geom_boxplot()
+# 
+# ggplot(renew_data, aes(x = datetime, y = renew_of_con))+
+#   geom_line()
+#   
 
-
-ggplot(subset(renew_data, year < 2020), aes(x = renew_of_con))+
-  # facet_grid(year~.)+
-  geom_density(aes(fill = as.factor(year)), alpha = 0.4, position = "dodge")
-
-ggplot(subset(renew_data, year < 2020), aes(x = as.factor(year), y = renew_of_con))+
-  geom_boxplot()
-
-ggplot(subset(renew_data, year < 2020), aes(x = as.factor(year), y = renew_balance))+
-  geom_jitter(aes(color = as.factor(month)), alpha = 0.3)+
-  geom_boxplot()
-
-ggplot(renew_data, aes(x = datetime, y = renew_of_con))+
-  geom_line()
   
 low_point <- 0
-high_point <- 60
-mid_point <- (high_point-low_point)/2
-
-
-
-  filter(year < lubridate::year(Sys.Date()))
-  
-low_point <- 0
-high_point <- 50
-mid_point <- (high_point-low_point)/2
+high_point <- 100
+mid_point <- low_point + (high_point-low_point)/2
 
 ## per hour plots
 ##Share of renewables 
 ggplot(subset(renew_data),aes(x = yhour, y = 1))+
   geom_col(aes(fill = renew_balance), width = 1, color = NA)+
-  scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint = mid_point, limits = c(low_point,high_point), na.value = "darkblue")+
+  scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", na.value = "grey10", midpoint = mid_point, limits = c(low_point,high_point))+
   facet_grid(year~.,switch = "y")+
   labs(fill = "Renewable share, %",
        title = "Hourly share of Estonia's power generation by renewable fuels",
@@ -209,116 +203,116 @@ ggplot(renew_data,aes(x = yhour, y = 1))+
 
 ggsave(here("output","non_renewable_balance.png"), dpi = 300, width = 16, height = 9)
 
-## 
-
-renew_col_plot <- renew_data_raw %>% 
-  na.omit() %>% 
-  filter(production != 0) %>% 
-  mutate(doy = lubridate::yday(datetime),
-         week = lubridate::week(datetime),
-         yhour = yhour(datetime)) %>% 
-  mutate(non_renew = production - production_renewable) %>% 
-  select(datetime,production_renewable,non_renew) %>% 
-  gather(key = "type",value = "value", production_renewable:non_renew) %>% 
-  mutate(year = lubridate::year(datetime),
-         yhour = yhour(datetime))
-
-
-renew_col_plot <- renew_data_raw %>% 
-  na.omit() %>% 
-  filter(production != 0) %>% 
-  mutate(doy = lubridate::yday(datetime),
-         week = lubridate::week(datetime),
-         yhour = yhour(datetime)) %>% 
-  mutate(non_renew = production - production_renewable,
-         renew_balance = 100*round(production_renewable / production,3),
-         other_balance = 100*round(non_renew / production,3)) %>% 
-  select(datetime, renew_balance, other_balance) %>% 
-  gather(key = "type",value = "value", other_balance:renew_balance) %>% 
-  mutate(year = lubridate::year(datetime),
-         yhour = yhour(datetime),
-         type = as.factor(type))
- 
-renew_col_plot$type <- factor(renew_col_plot$type, levels = rev(levels(renew_col_plot$type)))
-
- 
-ggplot(renew_col_plot,aes(x = yhour))+
-  geom_area(aes(y = value, fill = type))+
-  scale_fill_manual(values = c("green","grey60"),labels = c("Renewable","Non renewable"))+
-  facet_grid(year~., switch= "y", space = "free")+ 
-  theme_minimal()+
-  theme(axis.title = element_blank(),
-        legend.title = element_blank(),
-        axis.text.x = element_blank(),
-        axis.text.y = element_blank(), 
-        legend.position = "top",
-        panel.grid = element_blank(),
-        text = element_text(size = 20, family = "Aino"), #
-        plot.caption = element_text(color = "grey25", size = 10),
-        legend.text = element_text(size = 8),
-        legend.key.width = unit(2,"cm"),
-        strip.text = element_text(vjust = -20))
-  
-  
-renew_col_plot <- renew_data_raw %>% 
-  na.omit() %>% 
-  filter(production != 0) %>% 
-  mutate(doy = lubridate::yday(datetime),
-         week = lubridate::week(datetime),
-         yhour = yhour(datetime)) %>% 
-  group_by(year,doy) %>% 
-  summarise(production = sum(production),
-            production_renewable = sum(production_renewable)) %>% 
-  mutate(non_renew = production - production_renewable,
-         renew_balance = 100*round(production_renewable / production,3),
-         other_balance = 100*round(non_renew / production,3)) %>% 
-  select(year,doy, renew_balance, other_balance) %>% 
-  gather(key = "type",value = "value", other_balance:renew_balance) %>% 
-  mutate(type = as.factor(type))
-  
-
-renew_col_plot$type <- factor(renew_col_plot$type, levels = rev(levels(renew_col_plot$type)))
-
-ggplot(renew_col_plot,aes(x = doy))+
-  geom_area(aes(y = value, fill = type),position = "stack", color = NA, alpha = 0.95)+
-  scale_fill_manual(values = c("green","grey60"),labels = c("Renewable","Non renewable"))+#,guide = guide_legend(reverse=TRUE))+
-  facet_grid(year~., switch= "y", space = "free")+ 
-  theme_minimal()+
-  theme(axis.title = element_blank(),
-        legend.title = element_blank(),
-        axis.text.x = element_blank(),
-        axis.text.y = element_blank(), 
-        legend.position = "top",
-        panel.grid = element_blank(),
-        text = element_text(size = 20, family = "Aino"), #
-        plot.caption = element_text(color = "grey25", size = 10),
-        legend.text = element_text(size = 8),
-        legend.key.width = unit(2,"cm"),
-        strip.text = element_text(vjust = -20))
-
-
-
-## calendar plot
-calendar_data <- renew_data_raw %>% 
-  filter(production != 0) %>% 
-  mutate(doy = lubridate::yday(datetime),
-         week = lubridate::week(datetime),
-         weekday = lubridate::wday(datetime, label = TRUE),
-         month = lubridate::month(datetime),
-         hour = lubridate::hour(datetime),
-         yhour = yhour(datetime),
-         monthweek = ceiling(lubridate::day(datetime)/7)) %>% 
-  na.omit() %>% 
-  group_by(year,weekday,monthweek,month) %>%
-  summarise(production = sum(production),
-            production_renewable = sum(production_renewable),
-            consumption = sum(consumption)) %>% 
-  mutate(non_renew = production - production_renewable,
-         renew_balance = 100*round(production_renewable / production,3),
-         other_balance = 100*round(non_renew / production,3),
-         renew_of_con = 100*round(production_renewable / consumption,3))
-
-ggplot(calendar_data,aes(monthweek,weekday, fill = renew_of_con))+
-  geom_tile(color = "white")+
-  facet_grid(year~month)+
-  scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint =25, limits = c(0,50), na.value = "darkblue")
+# ## 
+# 
+# renew_col_plot <- renew_data_raw %>% 
+#   na.omit() %>% 
+#   filter(production != 0) %>% 
+#   mutate(doy = lubridate::yday(datetime),
+#          week = lubridate::week(datetime),
+#          yhour = yhour(datetime)) %>% 
+#   mutate(non_renew = production - production_renewable) %>% 
+#   select(datetime,production_renewable,non_renew) %>% 
+#   gather(key = "type",value = "value", production_renewable:non_renew) %>% 
+#   mutate(year = lubridate::year(datetime),
+#          yhour = yhour(datetime))
+# 
+# 
+# renew_col_plot <- renew_data_raw %>% 
+#   na.omit() %>% 
+#   filter(production != 0) %>% 
+#   mutate(doy = lubridate::yday(datetime),
+#          week = lubridate::week(datetime),
+#          yhour = yhour(datetime)) %>% 
+#   mutate(non_renew = production - production_renewable,
+#          renew_balance = 100*round(production_renewable / production,3),
+#          other_balance = 100*round(non_renew / production,3)) %>% 
+#   select(datetime, renew_balance, other_balance) %>% 
+#   gather(key = "type",value = "value", other_balance:renew_balance) %>% 
+#   mutate(year = lubridate::year(datetime),
+#          yhour = yhour(datetime),
+#          type = as.factor(type))
+#  
+# renew_col_plot$type <- factor(renew_col_plot$type, levels = rev(levels(renew_col_plot$type)))
+# 
+#  
+# ggplot(renew_col_plot,aes(x = yhour))+
+#   geom_area(aes(y = value, fill = type))+
+#   scale_fill_manual(values = c("green","grey60"),labels = c("Renewable","Non renewable"))+
+#   facet_grid(year~., switch= "y", space = "free")+ 
+#   theme_minimal()+
+#   theme(axis.title = element_blank(),
+#         legend.title = element_blank(),
+#         axis.text.x = element_blank(),
+#         axis.text.y = element_blank(), 
+#         legend.position = "top",
+#         panel.grid = element_blank(),
+#         text = element_text(size = 20, family = "Aino"), #
+#         plot.caption = element_text(color = "grey25", size = 10),
+#         legend.text = element_text(size = 8),
+#         legend.key.width = unit(2,"cm"),
+#         strip.text = element_text(vjust = -20))
+#   
+# #   
+# renew_col_plot <- renew_data_raw %>% 
+#   na.omit() %>% 
+#   filter(production != 0) %>% 
+#   mutate(doy = lubridate::yday(datetime),
+#          week = lubridate::week(datetime),
+#          yhour = yhour(datetime)) %>% 
+#   group_by(year,doy) %>% 
+#   summarise(production = sum(production),
+#             production_renewable = sum(production_renewable)) %>% 
+#   mutate(non_renew = production - production_renewable,
+#          renew_balance = 100*round(production_renewable / production,3),
+#          other_balance = 100*round(non_renew / production,3)) %>% 
+#   select(year,doy, renew_balance, other_balance) %>% 
+#   gather(key = "type",value = "value", other_balance:renew_balance) %>% 
+#   mutate(type = as.factor(type))
+#   
+# 
+# renew_col_plot$type <- factor(renew_col_plot$type, levels = rev(levels(renew_col_plot$type)))
+# 
+# ggplot(renew_col_plot,aes(x = doy))+
+#   geom_area(aes(y = value, fill = type),position = "stack", color = NA, alpha = 0.95)+
+#   scale_fill_manual(values = c("green","grey60"),labels = c("Renewable","Non renewable"))+#,guide = guide_legend(reverse=TRUE))+
+#   facet_grid(year~., switch= "y", space = "free")+ 
+#   theme_minimal()+
+#   theme(axis.title = element_blank(),
+#         legend.title = element_blank(),
+#         axis.text.x = element_blank(),
+#         axis.text.y = element_blank(), 
+#         legend.position = "top",
+#         panel.grid = element_blank(),
+#         text = element_text(size = 20, family = "Aino"), #
+#         plot.caption = element_text(color = "grey25", size = 10),
+#         legend.text = element_text(size = 8),
+#         legend.key.width = unit(2,"cm"),
+#         strip.text = element_text(vjust = -20))
+# 
+# 
+# 
+# ## calendar plot
+# calendar_data <- renew_data_raw %>% 
+#   filter(production != 0) %>% 
+#   mutate(doy = lubridate::yday(datetime),
+#          week = lubridate::week(datetime),
+#          weekday = lubridate::wday(datetime, label = TRUE),
+#          month = lubridate::month(datetime),
+#          hour = lubridate::hour(datetime),
+#          yhour = yhour(datetime),
+#          monthweek = ceiling(lubridate::day(datetime)/7)) %>% 
+#   na.omit() %>% 
+#   group_by(year,weekday,monthweek,month) %>%
+#   summarise(production = sum(production),
+#             production_renewable = sum(production_renewable),
+#             consumption = sum(consumption)) %>% 
+#   mutate(non_renew = production - production_renewable,
+#          renew_balance = 100*round(production_renewable / production,3),
+#          other_balance = 100*round(non_renew / production,3),
+#          renew_of_con = 100*round(production_renewable / consumption,3))
+# 
+# ggplot(calendar_data,aes(monthweek,weekday, fill = renew_of_con))+
+#   geom_tile(color = "white")+
+#   facet_grid(year~month)+
+#   scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint =25, limits = c(0,50), na.value = "darkblue")
