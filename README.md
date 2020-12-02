@@ -6,4 +6,3 @@
 
 
 Orginial plot made by -> https://twitter.com/Jamrat_/status/1132390396787613696 . Remade it in R for  for Estonia
-NB! Some data is missing from Elering API. 
