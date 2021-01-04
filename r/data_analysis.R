@@ -27,9 +27,12 @@ last_max_date <- max(renew_data_raw$datetime)
 
 ### query new data until today
 additional_data <- RODER::get_system_real(query_start = paste(substr(last_max_date,1,16),"00:00"), query_end = paste(Sys.Date(),"00:00")) %>% 
-  mutate(year = lubridate::year(datetime))
+  mutate(year = lubridate::year(datetime)) 
 
 colnames(additional_data) <- gsub("real.","",colnames(additional_data))
+
+additional_data <- additional_data %>% 
+  select(-solar_energy_production)
 
 ### bind by rows all the data and clean duplicate datetimes
 renew_data_raw <- rbind(renew_data_raw,additional_data) %>% 
@@ -88,7 +91,7 @@ renew_data <- renew_data_raw %>%
   # rename("yhour" = doy) %>% 
   mutate(month = lubridate::month(datetime)) %>% 
   rename() %>% 
-  filter(year > 2014)
+  filter(year > 2014 & year < 2021)
 
 
 # 
@@ -316,3 +319,4 @@ ggsave(here("output","non_renewable_balance.png"), dpi = 300, width = 16, height
 #   geom_tile(color = "white")+
 #   facet_grid(year~month)+
 #   scale_fill_gradient2(high = "green", mid = "grey70", low = "grey10", midpoint =25, limits = c(0,50), na.value = "darkblue")
+
